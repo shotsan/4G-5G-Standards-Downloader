@@ -6,3 +6,4 @@ This repo has script that downloads all the standards documents with all the rev
 * Please change the input to download standards others than physical layer
 
 * https://www.etsi.org/deliver/etsi_ts/
+
