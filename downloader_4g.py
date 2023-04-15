@@ -10,67 +10,70 @@ import concurrent.futures
 import multiprocessing
 import os
 
-# scraps all the url links
+# change the URL to download other specifications
 
+URL = 'https://www.etsi.org/deliver/etsi_ts/136100_136199/'
+
+
+# scraps all the url links
+pdfs=[]
 def get_pdf_links(url):
+    reguest = requests.get(url)
+    soup = BeautifulSoup(reguest.text, 'html.parser')
+    for l in soup.find_all('a', href=True):
+        if l['href'].endswith('.pdf'):
+            pdfs.append('www.etsi.org'+l['href'])
+            return 
+            
+
+def get_urls(url):
     reguest = requests.get(url)
 
     soup = BeautifulSoup(reguest.text, 'html.parser')
-    links=[]
-    for link in soup.find_all('a', href=True):
-        links.append('https://www.etsi.org/'+link['href'])
+    urls=[]
+    for l in soup.find_all('a', href=True):
+        urls.append('https://www.etsi.org'+l['href'])
     
-    pdfs=[]
-    for link in links:
-        reguest = requests.get(link)
-        soup = BeautifulSoup(reguest.text, 'html.parser')
-        for inner_link in soup.find_all('a', href=True):
-            if inner_link['href'].endswith('.pdf'):
-                print('www.etsi.org'+inner_link['href'])
-                pdfs.append('www.etsi.org'+inner_link['href'])
-                break
-            # get the pdf
-           
-    return pdfs
+    #print(urls)
+    return urls
 
-#  4G URLs from the ETSI
 
-url='https://www.etsi.org/deliver/etsi_ts/136100_136199/'
-url_list=['136101','136104','136106','136111','136113','136116','136117','136124','136133','136141','136143','136171']
 
-for l in url_list:
+# change URL for other locations
+spec_urls=get_urls(URL)
+spec_urls=spec_urls[1:-1]
+
+spec_urls_inner=[]
+for items in spec_urls:
+    spec_urls_inner.extend(get_urls(items))
+
+
+for l in spec_urls:
     try:
-        os.mkdir('ts_'+l)
+        #print('ts_'+l.split('/')[-2])
+        os.mkdir('ts_'+l.split('/')[-2])
     except:
-        pass 
-
-
+        pass
 
 # collects all the URLs
-final_list=[]
-pdfs=[]
-for list in url_list:
-    final_list.append(url+list)
-
-for url in final_list:
-    pdfs.extend(get_pdf_links(url))
-
-
-
-# saves the URLs in the right folders
+ 
+with concurrent.futures.ThreadPoolExecutor(max_workers=multiprocessing.cpu_count()) as executor:
+    executor.map(get_pdf_links, spec_urls_inner)
+ 
+# saves the PDFs in the right folders
 
 def save_pdf(link):
+    folder_name='ts_'+link.split('/')[-3]
+    print(folder_name)
     reguest = requests.get('https://'+link)
-    file_name=link.split('/')[-1]
-    
-    for url in url_list:
-        if re.search(url,link.split('/')[-1]):
-            with open('ts_'+url+'/'+link.split('/')[-1], 'wb') as f:
-                f.write(reguest.content)
-                print('saved '+link.split('/')[-1])
-
+    with open(folder_name+'/'+link.split('/')[-1], 'wb') as f:
+        f.write(reguest.content)
+        print('saved '+link.split('/')[-1])
 # Parallel execution of the downloads
 
 with concurrent.futures.ThreadPoolExecutor(max_workers=multiprocessing.cpu_count()) as executor:
     executor.map(save_pdf, pdfs)
- 
+
+
+
+
