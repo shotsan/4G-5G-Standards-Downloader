@@ -1,4 +1,4 @@
-# LTE-Standards-Downloader
+# 4G LTE-Standards-Downloader
 
 This repo has script that downloads all the standards documents with all the revisions from the ETSI
 
@@ -7,3 +7,7 @@ This repo has script that downloads all the standards documents with all the rev
 
 * https://www.etsi.org/deliver/etsi_ts/
 
+# 5G Standards-Downloader
+
+* Technical standards - 38101, 36104, 36106, 36111, 36116, 36117, 36124, 36133, 36141, 36171
+* Please change the input URL to download standards others than physical layer
